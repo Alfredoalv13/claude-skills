@@ -1,0 +1,59 @@
+name: CI
+
+# Build + test gate for every PR into the default branch (and pushes to it).
+# This is a TEMPLATE: keep the `build-test` job, then replace its steps with the
+# block for your stack below and delete the others. Pick the runner to match
+# (ubuntu-latest for most; macos-latest for Xcode/Swift apps).
+on:
+  pull_request:
+    branches: [main]   # change to your default branch if not "main"
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest    # macos-latest for Xcode/Swift
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Swift / Xcode (use runs-on: macos-latest) ───────────────────────────
+      # NOTE: the scheme must be SHARED (checked into
+      #   <Project>.xcodeproj/xcshareddata/xcschemes/<Scheme>.xcscheme)
+      # or CI can't resolve -scheme on a clean checkout. Also ensure the
+      # deployment target / Xcode version is compatible with the runner image.
+      # - run: xcodebuild -version
+      # - run: |
+      #     set -o pipefail
+      #     xcodebuild test \
+      #       -project <Project>.xcodeproj -scheme <Scheme> \
+      #       -destination 'platform=macOS' \
+      #       CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+
+      # ── Swift Package Manager ────────────────────────────────────────────────
+      # - run: swift build
+      # - run: swift test
+
+      # ── Node ─────────────────────────────────────────────────────────────────
+      # - uses: actions/setup-node@v4
+      #   with: { node-version: 'lts/*', cache: 'npm' }
+      # - run: npm ci
+      # - run: npm run build --if-present
+      # - run: npm test
+
+      # ── Python ───────────────────────────────────────────────────────────────
+      # - uses: actions/setup-python@v5
+      #   with: { python-version: '3.x', cache: 'pip' }
+      # - run: pip install -e ".[test]"   # or: pip install -r requirements.txt
+      # - run: pytest
+
+      # ── Rust ─────────────────────────────────────────────────────────────────
+      # - run: cargo build --verbose
+      # - run: cargo test --verbose
+
+      - run: echo "Replace this step with your stack's build + test commands."
